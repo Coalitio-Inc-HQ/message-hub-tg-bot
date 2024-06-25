@@ -66,7 +66,6 @@ async def start_command(message: types.Message):
 @dp.message()
 async def handle_message(message: types.Message):
     telegram_user_id = message.from_user.id
-    text = message.text
 
     # Найти пользователя по telegram_user_id
     collection = db["users"]
@@ -75,10 +74,11 @@ async def handle_message(message: types.Message):
     if user:
         # Сохранение сообщения в базу данных
         payload = Message(
+            id=message.message_id,
             chat_id=user["chat_id"],
             sender_id=user["user_id"],
-            message_text=text,
-            date=message.date.isoformat(),  # Assuming message.date is a datetime object
+            sended_at=message.date.isoformat(), 
+            text=message.text,
         )
 
         async with aiohttp.ClientSession() as session:
