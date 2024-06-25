@@ -22,7 +22,10 @@ dp = Dispatcher()
 # Инициализация подключения к MongoDB
 client = MongoClient(config.mongodb_uri)
 db = client["chat_db"]
-users_collection = db["users"]
+collection_users = db["users"]
+
+# Создание индексов
+collection_users.create_index("telegram_user_id")
 
 # URL для регистрации пользователя и отправки сообщений
 USER_REGISTRATION_URL = config.user_registration_url
@@ -35,7 +38,7 @@ async def start_command(message: types.Message):
     Обработчик команды /start. Регистрирует пользователя в системе.
     """
     telegram_user_id = message.from_user.id
-    user = users_collection.find_one({"telegram_user_id": telegram_user_id})
+    user = collection_users.find_one({"telegram_user_id": telegram_user_id})
 
     if user:
         await message.reply("Вы уже зарегистрированы!")
@@ -58,7 +61,7 @@ async def start_command(message: types.Message):
                 name=name,
             )
             user_data = user.model_dump()
-            users_collection.insert_one(user_data)
+            collection_users.insert_one(user_data)
             await message.reply("Добро пожаловать! Вы зарегистрированы.")
             logging.info(f"Пользователь {user_data} добавлен в базу данных.")
         except Exception as e:
@@ -74,7 +77,7 @@ async def handle_message(message: types.Message):
     Обработчик обычного сообщения. Сохраняет сообщение в системе и отправляет его через вебхук.
     """
     telegram_user_id = message.from_user.id
-    user = users_collection.find_one({"telegram_user_id": telegram_user_id})
+    user = collection_users.find_one({"telegram_user_id": telegram_user_id})
 
     if user:
         payload = Message(

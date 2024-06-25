@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 import sys, os
 from fastapi.responses import JSONResponse
 from pymongo import MongoClient
@@ -26,13 +27,13 @@ SERVER_WEBHOOK_URL = config.server_webhook_url
 # Настройка логгера
 logging.basicConfig(level=logging.INFO)
 
-# Инициализация FastAPI приложения
-app = FastAPI()
-
 # Инициализация подключения к MongoDB
 client = MongoClient(config.mongodb_uri)
 db = client["chat_db"]
 collection_users = db["users"]
+
+# Создание индексов
+collection_users.create_index("chat_id")
 
 
 async def register_webhook():
@@ -54,12 +55,8 @@ async def register_webhook():
         return None
 
 
-@app.lifespan("startup")
-async def on_startup():
-    """
-    Событие запуска приложения.
-    Вызывает функцию регистрации вебхука при старте приложения.
-    """
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     response = await register_webhook()
     if response and response.status == 200:
         logging.info("Отправлен запрос на регистрацию вебхука")
@@ -68,6 +65,12 @@ async def on_startup():
         raise HTTPException(
             status_code=500, detail="Не удалось отправить запрос на регистрацию вебхука"
         )
+    yield
+    # Здесь можно добавить код для выполнения при остановке приложения, если это необходимо
+    logging.info("Приложение остановлено")
+
+# Инициализация FastAPI приложения
+app = FastAPI(lifespan=lifespan)
 
 
 @app.post("/webhook")
