@@ -3,6 +3,7 @@ import sys, os
 from fastapi.responses import JSONResponse
 from pymongo import MongoClient
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 import aiohttp
 import logging
 
@@ -72,6 +73,14 @@ async def lifespan(app: FastAPI):
 # Инициализация FastAPI приложения
 app = FastAPI(lifespan=lifespan)
 
+# Добавление CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Можно указать список разрешенных источников, например ["https://example.com"]
+    allow_credentials=True,
+    allow_methods=["*"],  # Разрешенные методы, например ["GET", "POST"]
+    allow_headers=["*"],  # Разрешенные заголовки
+)
 
 @app.post("/webhook")
 async def send_message_to_chat(message: Message):
