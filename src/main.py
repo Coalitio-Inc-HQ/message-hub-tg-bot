@@ -10,11 +10,18 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config.config_reader import config
 from config.models import Message
 
+# Адрес и порт сервера
+SERVER_HOST = config.web_server_host
+SERVER_PORT = config.web_server_port
+
 # URL для отправки сообщений в Telegram
-TELEGRAM_API_URL = f"https://api.telegram.org/bot{config.telegram_bot_token.get_secret_value()}/sendMessage"
+TELEGRAM_API_URL = config.telegram_api_url
 
 # URL для регистрации вебхука
-WEBHOOK_REGISTRATION_URL = f"{config.webhook_url}/platform_registration/bot"
+WEBHOOK_REGISTRATION_URL = config.platform_registration_url
+
+# URL вебхука сервера для обработки сообщений
+SERVER_WEBHOOK_URL = config.server_webhook_url
 
 # Настройка логгера
 logging.basicConfig(level=logging.INFO)
@@ -28,7 +35,7 @@ db = client["chat_db"]
 collection_users = db["users"]
 
 
-async def startup_event():
+async def register_webhook():
     """
     Выполняет регистрацию вебхука на указанный URL при старте приложения.
     Отправляет POST-запрос на URL вебхука с информацией о платформе и URL сервиса.
@@ -37,7 +44,7 @@ async def startup_event():
         async with aiohttp.ClientSession() as session:
             async with session.post(
                 WEBHOOK_REGISTRATION_URL,
-                json={"platform_name": "telegram", "url": config.service_url},
+                json={"platform_name": "telegram", "url": SERVER_WEBHOOK_URL},
             ) as response:
                 response_data = await response.json()
                 logging.info(response_data)
@@ -53,7 +60,7 @@ async def on_startup():
     Событие запуска приложения.
     Вызывает функцию регистрации вебхука при старте приложения.
     """
-    response = await startup_event()
+    response = await register_webhook()
     if response and response.status == 200:
         logging.info("Отправлен запрос на регистрацию вебхука")
     else:
@@ -75,15 +82,18 @@ async def send_message_to_chat(message: Message):
         response = await send_message_to_telegram(
             user["telegram_user_id"], message.message_text
         )
+
         if response and response.status == 200:
             response_data = await response.json()
             logging.info("Сообщение было отправлено в Telegram")
             return JSONResponse(status_code=response.status, content=response_data)
+
         else:
             logging.error("Сообщение не было отправлено в Telegram.")
             raise HTTPException(
                 status_code=500, detail="Сообщение не было отправлено в Telegram"
             )
+
     else:
         logging.warning(
             f"Пользователь с chat_id {message.chat_id} не существует в базе данных"
@@ -98,22 +108,11 @@ async def send_message_to_telegram(telegram_user_id: int, text: str):
     Отправляет сообщение в Telegram.
     Принимает telegram_user_id и текст сообщения в качестве параметров.
     """
-    url = TELEGRAM_API_URL
     payload = {"chat_id": telegram_user_id, "text": text}
     try:
         async with aiohttp.ClientSession() as session:
-            async with session.post(url, json=payload) as response:
-                response_data = await response.json()
-                if response.status == 200:
-                    logging.info(
-                        f"Сообщение было отправлено в Telegram: {response_data}"
-                    )
-                    return response
-                else:
-                    logging.error(
-                        f"Сообщение не было отправлено в Telegram: {response.status} {response_data}"
-                    )
-                    return response
+            async with session.post(TELEGRAM_API_URL, json=payload) as response:
+                return response
     except Exception as e:
         logging.error(f"Возникла ошибка при отправке сообщения в Telegram: {e}")
         return None
@@ -123,4 +122,4 @@ if __name__ == "__main__":
     import uvicorn
 
     # Запуск FastAPI приложения
-    uvicorn.run("main:app", host="127.0.0.1", port=8001, reload=True)
+    uvicorn.run("main:app", host=SERVER_HOST, port=SERVER_PORT, reload=True)
