@@ -21,9 +21,9 @@
     MONGODB_URI: mongodb://root:example@mongo:27017/chat_db?authSource=admin
     # Вебхук сервиса, куда будут отправляться запросы
     WEBHOOK_URL: http://messege-hub.com/message_service
-    WEBHOOK_USER_REGISTRATION_PATH: /register
-    WEBHOOK_SEND_MESSAGE_PATH: /send_message
-    WEBHOOK_PLATFORM_REGISTRATION_PATH: /register_platform
+    WEBHOOK_USER_REGISTRATION_PATH: /user_registration/bot
+    WEBHOOK_SEND_MESSAGE_PATH: /send_a_message_to_chat
+    WEBHOOK_PLATFORM_REGISTRATION_PATH: /platform_registration/bot
 
     # Не забудьте изменить другие параметры (порты).
     ```
