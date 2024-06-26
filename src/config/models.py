@@ -12,8 +12,8 @@ class Message(BaseModel):
 
 class User(BaseModel):
     user_id: int = Field(..., description="Идентификатор пользователя")
-    chat_id: str = Field(..., description="Идентификатор чата")
-    telegram_user_id: str = Field(..., description="Идентификатор пользователя Telegram")
+    chat_id: int = Field(..., description="Идентификатор чата")
+    telegram_user_id: int = Field(..., description="Идентификатор пользователя Telegram")
     name: str = Field(..., description="Имя пользователя")
     
     

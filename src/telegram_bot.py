@@ -1,3 +1,5 @@
+from config.models import Message, User
+from config.config_reader import config
 import sys
 import os
 import logging
@@ -9,8 +11,6 @@ from aiogram.filters.command import Command
 
 # Добавление пути к конфигурационным файлам
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from config.config_reader import config
-from config.models import Message, User
 
 # Настройка логгера
 logging.basicConfig(level=logging.INFO)
@@ -87,7 +87,7 @@ async def handle_message(message: types.Message):
             sended_at=message.date.isoformat(),
             text=message.text,
         )
-        
+
         payload_data = payload.model_dump(by_alias=True)
         logging.info(payload_data)
         try:
@@ -95,6 +95,7 @@ async def handle_message(message: types.Message):
                 async with session.post(
                     SEND_MESSAGE_URL, json=payload_data
                 ) as response:
+                    response.raise_for_status()
                     response_data = await response.json()
                     logging.info(response_data)
             await message.reply("Ваше сообщение получено и сохранено!")

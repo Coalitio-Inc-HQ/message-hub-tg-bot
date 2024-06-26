@@ -1,5 +1,8 @@
+from config.models import Message
+from config.config_reader import config
 from contextlib import asynccontextmanager
-import sys, os
+import sys
+import os
 from fastapi.responses import JSONResponse
 from pymongo import MongoClient
 from fastapi import FastAPI, HTTPException
@@ -9,8 +12,6 @@ import logging
 
 # Добавление пути к конфигурационным файлам
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from config.config_reader import config
-from config.models import Message
 
 # Адрес и порт сервера
 SERVER_HOST = config.web_server_host
@@ -76,11 +77,13 @@ app = FastAPI(lifespan=lifespan)
 # Добавление CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Можно указать список разрешенных источников, например ["https://example.com"]
+    # Можно указать список разрешенных источников, например ["https://example.com"]
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],  # Разрешенные методы, например ["GET", "POST"]
     allow_headers=["*"],  # Разрешенные заголовки
 )
+
 
 @app.post("/webhook")
 async def send_message_to_chat(message: Message):
@@ -88,7 +91,7 @@ async def send_message_to_chat(message: Message):
     Обрабатывает входящие сообщения из вебхука.
     Ищет пользователя по chat_id в базе данных и отправляет сообщение в Telegram.
     """
-    user = await collection_users.find_one({"chat_id": message.chat_id})
+    user = collection_users.find_one({"chat_id": message.chat_id})
 
     if user:
         response = await send_message_to_telegram(
@@ -96,9 +99,8 @@ async def send_message_to_chat(message: Message):
         )
 
         if response and response.status == 200:
-            response_data = await response.json()
             logging.info("Сообщение было отправлено в Telegram")
-            return JSONResponse(status_code=response.status, content=response_data)
+            return {"status": "ok"}
 
         else:
             logging.error("Сообщение не было отправлено в Telegram.")
@@ -108,7 +110,8 @@ async def send_message_to_chat(message: Message):
 
     else:
         logging.warning(
-            f"Пользователь с chat_id {message.chat_id} не существует в базе данных"
+            f"Пользователь с chat_id {
+                message.chat_id} не существует в базе данных"
         )
         raise HTTPException(
             status_code=404, detail="Пользователь не найден в базе данных"
@@ -126,7 +129,8 @@ async def send_message_to_telegram(telegram_user_id: int, text: str):
             async with session.post(TELEGRAM_API_URL, json=payload) as response:
                 return response
     except Exception as e:
-        logging.error(f"Возникла ошибка при отправке сообщения в Telegram: {e}")
+        logging.error(
+            f"Возникла ошибка при отправке сообщения в Telegram: {e}")
         return None
 
 
