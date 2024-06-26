@@ -3,7 +3,6 @@ from config.config_reader import config
 from contextlib import asynccontextmanager
 import sys
 import os
-from fastapi.responses import JSONResponse
 from pymongo import MongoClient
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -71,6 +70,7 @@ async def lifespan(app: FastAPI):
     # Здесь можно добавить код для выполнения при остановке приложения, если это необходимо
     logging.info("Приложение остановлено")
 
+
 # Инициализация FastAPI приложения
 app = FastAPI(lifespan=lifespan)
 
@@ -93,6 +93,11 @@ async def send_message_to_chat(message: Message):
     """
     user = collection_users.find_one({"chat_id": message.chat_id})
 
+    # Обработка тавтологии
+    if message.sender_id == user["user_id"]:
+        logging.info("Сообщение отправлено самому себе. Не отправляем.")
+        return {"status": "ok"}
+
     if user:
         response = await send_message_to_telegram(
             user["telegram_user_id"], message.message_text
@@ -110,8 +115,7 @@ async def send_message_to_chat(message: Message):
 
     else:
         logging.warning(
-            f"Пользователь с chat_id {
-                message.chat_id} не существует в базе данных"
+            f"Пользователь с chat_id {message.chat_id} не существует в базе данных"
         )
         raise HTTPException(
             status_code=404, detail="Пользователь не найден в базе данных"
@@ -129,8 +133,7 @@ async def send_message_to_telegram(telegram_user_id: int, text: str):
             async with session.post(TELEGRAM_API_URL, json=payload) as response:
                 return response
     except Exception as e:
-        logging.error(
-            f"Возникла ошибка при отправке сообщения в Telegram: {e}")
+        logging.error(f"Возникла ошибка при отправке сообщения в Telegram: {e}")
         return None
 
 
