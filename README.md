@@ -1,3 +1,8 @@
+# TODO
+- [ ] Использовать SQLITE вместо MongoDB;
+- [ ] Избавиться от FASTAPI части, перейти на вебхуки aiogram;
+- [ ] Выгрузить на сервер
+
 # Telegram Bot and FastAPI Project
 
 Этот проект представляет собой Telegram-бота и веб-сервер на FastAPI, работающие в Docker-контейнере с использованием Supervisor для управления процессами и MongoDB для хранения данных.
