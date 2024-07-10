@@ -1,36 +1,58 @@
 import logging
+from contextlib import asynccontextmanager
+
+import aiohttp
 from aiogram import types
 from aiohttp import web
-import aiohttp
-from fastapi import Request, FastAPI
+from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
 
+import handlers  # noqa: F401
 from core.config import (
+    BOT_TOKEN,
     MESSAGE_SERVICE_PLATFORM_REGISTRATION_URL,
     SERVER_HOST,
     SERVER_PORT,
     WEBHOOK_HOST,
     WEBHOOK_PATH,
     WEBHOOK_URI,
-    BOT_TOKEN,
 )
 from core.loader import bot, dp
-
 from db.database import db_run
 from db.requests import get_destination
-import handlers  # noqa: F401
-
 from models.models import Message as MessageModel
-from fastapi.middleware.cors import CORSMiddleware
 
-app = FastAPI()
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    logging.info("Происходит регистрация платформы на сервере мессенджера.")
+    await register_platform()
+    logging.info("Регистрация платформы завершена.")
+
+    logging.info("Происходит подключение к локальной базе данных.")
+    await db_run()
+    logging.info("Подключение базе данных завершено.")
+
+    logging.info("Происходит установка вебхука на бота.")
+    await bot.set_webhook(WEBHOOK_URI)
+    logging.info("Вебхук установлен.")
+
+    yield
+
+    logging.info("Происходит удаление вебхука бота.")
+    await bot.delete_webhook()
+    logging.info("Вебхук удален.")
+
+
+app = FastAPI(lifespan=lifespan)
+
 
 app.add_middleware(
     CORSMiddleware,
-    # Можно указать список разрешенных источников, например ["https://example.com"]
     allow_origins=["*"],
     allow_credentials=True,
-    allow_methods=["*"],  # Разрешенные методы, например ["GET", "POST"]
-    allow_headers=["*"],  # Разрешенные заголовки
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
@@ -48,7 +70,9 @@ async def handle_webhook(request: Request):
 
 
 async def send_message(messageModel: MessageModel):
-    users = await get_destination(chat_id=messageModel.chat_id, user_id=messageModel.sender_id)
+    users = await get_destination(
+        chat_id=messageModel.chat_id, user_id=messageModel.sender_id
+    )
 
     if not users:
         raise web.HTTPNotFound()
@@ -59,37 +83,17 @@ async def send_message(messageModel: MessageModel):
 
 
 async def register_platform() -> None:
-    try:
-        async with aiohttp.ClientSession() as session:
-            async with session.post(
-                MESSAGE_SERVICE_PLATFORM_REGISTRATION_URL,
-                json={"platform_name": "telegram", "url": WEBHOOK_HOST},
-            ) as response:
-                if response.status != 200:
-                    raise Exception(
-                        f"Ошибка при регистрации платформы на сервере мессенджера. "
-                        f"Статус ответа: {response.status}"
-                    )
-        logging.info("Произведена регистрация платформы.")
-    except Exception as err:
-        logging.exception("Произошла ошибка: %s", str(err))
-
-
-async def on_startup():
-    await register_platform()
-    await db_run()
-    await bot.set_webhook(WEBHOOK_URI)
-
-
-async def on_shutdown():
-    await bot.delete_webhook()
+    url = MESSAGE_SERVICE_PLATFORM_REGISTRATION_URL
+    payload = {"platform_name": "telegram", "url": WEBHOOK_HOST}
+    async with aiohttp.ClientSession() as session:
+        async with session.post(url, json=payload) as response:
+            response.raise_for_status()
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
-
-    app.add_event_handler("startup", on_startup)
-    app.add_event_handler("shutdown", on_shutdown)
+    logging.basicConfig(
+        level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+    )
 
     @app.get("/")
     async def hello():
@@ -108,4 +112,4 @@ if __name__ == "__main__":
 
         uvicorn.run(app, host=SERVER_HOST, port=SERVER_PORT)
     except KeyboardInterrupt:
-        logging.info("Shutting down...")
+        logging.info("Компонент завершает работу...", exc_info=False)
