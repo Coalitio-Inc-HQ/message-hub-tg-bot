@@ -1,5 +1,7 @@
-# db sqlite3
-db.sqlite3
+# custom
+test.py
+*.sqlite3
+logs
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

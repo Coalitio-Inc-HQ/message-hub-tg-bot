@@ -1,4 +1,4 @@
-import logging
+from logger.log_config import logger
 
 import aiohttp
 from aiogram import F, types
@@ -38,10 +38,10 @@ async def message_handler(message: types.Message) -> None:
                         f"Ошибка при отправлении сообщения на сервер мессенджера. "
                         f"Статус ответа: {response.status}"
                     )
-        logging.info("Отправлено сообщение: ")
-        logging.info(message_data.model_dump())
+        logger.info("Отправлено сообщение: ")
+        logger.info(message_data.model_dump())
         # await message.reply("Ваше сообщение принято.")
 
     except Exception as err:
-        logging.exception("Произошла ошибка: %s", str(err))
+        logger.exception("Произошла ошибка: %s", str(err))
         await message.reply("Произошла ошибка: %s", str(err))
