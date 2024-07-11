@@ -1,0 +1,10 @@
+services:
+  tg-bot:
+    build: .
+    container_name: messagehub_tg_bot
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+    ports:
+      - "8002:8002"

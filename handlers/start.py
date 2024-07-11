@@ -1,4 +1,4 @@
-import logging
+from logger.log_config import logger
 
 import aiohttp
 from aiogram.filters import CommandStart
@@ -44,7 +44,7 @@ async def command_start_handler(message: Message) -> None:
             name=message.from_user.username,
         )
         await add_user(user_data)
-        logging.info(
+        logger.info(
             "Новый пользователь добавлен в базу данных: ", user_data.model_dump()
         )
         await message.answer(
@@ -52,5 +52,5 @@ async def command_start_handler(message: Message) -> None:
         )
 
     except Exception as err:
-        logging.exception("Произошла ошибка: %s", str(err))
+        logger.error("Произошла ошибка: %s", str(err))
         await message.answer("Произошла ошибка: %s", str(err))

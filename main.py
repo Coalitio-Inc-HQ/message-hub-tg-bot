@@ -1,4 +1,3 @@
-import logging
 from contextlib import asynccontextmanager
 
 import aiohttp
@@ -20,28 +19,40 @@ from core.config import (
 from core.loader import bot, dp
 from db.database import db_run
 from db.requests import get_destination
+from logger.log_config import logger
 from models.models import Message as MessageModel
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logging.info("Происходит регистрация платформы на сервере мессенджера.")
+    logger.info("Происходит инициализация компонента.")
+
+    logger.info("Происходит регистрация платформы на сервере мессенджера.")
     await register_platform()
-    logging.info("Регистрация платформы завершена.")
+    logger.info("Регистрация платформы завершена.")
 
-    logging.info("Происходит подключение к локальной базе данных.")
+    logger.info("Происходит подключение к локальной базе данных.")
     await db_run()
-    logging.info("Подключение базе данных завершено.")
+    logger.info("Подключение к базе данных завершено.")
 
-    logging.info("Происходит установка вебхука на бота.")
-    await bot.set_webhook(WEBHOOK_URI)
-    logging.info("Вебхук установлен.")
+    logger.info("Происходит установка вебхука на бота.")
+    await bot.set_webhook(url=WEBHOOK_URI)
+    logger.info("Вебхук установлен.")
+
+    webhook = await bot.get_webhook_info()
+    logger.info(webhook)
+
+    logger.info("Инициализация компонента завершена.")
 
     yield
 
-    logging.info("Происходит удаление вебхука бота.")
+    logger.info("Происходит удаление вебхука бота.")
     await bot.delete_webhook()
-    logging.info("Вебхук удален.")
+    logger.info("Вебхук удален.")
+
+    logger.info("Происходит закрытие сессии.")
+    await bot.session.close()
+    logger.info("Сессия закрыта.")
 
 
 app = FastAPI(lifespan=lifespan)
@@ -91,9 +102,6 @@ async def register_platform() -> None:
 
 
 if __name__ == "__main__":
-    logging.basicConfig(
-        level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-    )
 
     @app.get("/")
     async def hello():
@@ -111,5 +119,5 @@ if __name__ == "__main__":
         import uvicorn
 
         uvicorn.run(app, host=SERVER_HOST, port=SERVER_PORT)
-    except KeyboardInterrupt:
-        logging.info("Компонент завершает работу...", exc_info=False)
+    except (KeyboardInterrupt, SystemExit):
+        logger.info("Компонент завершил работу.\n", exc_info=False)
