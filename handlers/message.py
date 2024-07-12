@@ -18,7 +18,11 @@ async def message_handler(message: types.Message) -> None:
         user = await get_user(telegram_id=message.from_user.id)
 
         if not user:
-            raise Exception("Отправитель сообщения не найден в базе данных.")
+            await message.answer(
+                "Извините, мы не нашли Вас среди зарегистрированных пользователей.\n"
+                "Пожалуйста, зарегистрируйтесь командой /start ."
+            )
+            return
 
         message_data = MessageModel(
             id=0,
@@ -28,20 +32,19 @@ async def message_handler(message: types.Message) -> None:
             sended_at=message.date.isoformat(),
         )
 
+        url = MESSAGE_SERVICE_SEND_MESSAGE_URL
+        payload = message_data.model_dump()
+
         async with aiohttp.ClientSession() as session:
-            async with session.post(
-                MESSAGE_SERVICE_SEND_MESSAGE_URL,
-                json=message_data.model_dump(),
-            ) as response:
-                if response.status != 200:
-                    raise Exception(
-                        f"Ошибка при отправлении сообщения на сервер мессенджера. "
-                        f"Статус ответа: {response.status}"
-                    )
+            async with session.post(url=url, json=payload) as response:
+                response.raise_for_status()
+
         logger.info("Отправлено сообщение: ")
         logger.info(message_data.model_dump())
         # await message.reply("Ваше сообщение принято.")
 
     except Exception as err:
-        logger.exception("Произошла ошибка: %s", str(err))
-        await message.reply("Произошла ошибка: %s", str(err))
+        await message.answer(
+            "Приносим извинения! Ваше сообщение не было отправлено. Мы уже решаем данную проблему!"
+        )
+        logger.exception(f"Произошла ошибка: {str(err)}", exc_info=True)

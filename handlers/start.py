@@ -22,17 +22,14 @@ async def command_start_handler(message: Message) -> None:
         )
         return
 
+    url = MESSAGE_SERVICE_USER_REGISTRATION_URL
+    payload = {"platform_name": "telegram", "name": message.from_user.username}
+
     try:
         async with aiohttp.ClientSession() as session:
-            async with session.post(
-                MESSAGE_SERVICE_USER_REGISTRATION_URL,
-                json={"platform_name": "telegram", "name": message.from_user.username},
-            ) as response:
-                if response.status != 200:
-                    raise Exception(
-                        f"Ошибка при регистрации пользователя на сервере мессенджера. "
-                        f"Статус ответа: {response.status}"
-                    )
+            async with session.post(url=url, json=payload) as response:
+                response.raise_for_status()
+
                 response_data = await response.json()
                 user_id = response_data["user_id"]
                 chat_id = response_data["chat_id"]
@@ -52,5 +49,7 @@ async def command_start_handler(message: Message) -> None:
         )
 
     except Exception as err:
-        logger.error("Произошла ошибка: %s", str(err))
-        await message.answer("Произошла ошибка: %s", str(err))
+        await message.answer(
+            "Приносим извинения! Ваше сообщение не было отправлено. Мы уже решаем данную проблему!"
+        )
+        logger.exception(f"Произошла ошибка: {str(err)}", exc_info=False)
