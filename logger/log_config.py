@@ -1,4 +1,5 @@
 import logging
+from logging.handlers import RotatingFileHandler
 from colorlog import ColoredFormatter
 
 def setup_logging():
@@ -28,7 +29,7 @@ def setup_logging():
     )
 
     # Создаем обработчик для логов в файл
-    file_handler = logging.FileHandler("logs/app.log", encoding="utf-8")
+    file_handler = RotatingFileHandler("logs/app.log", encoding="utf-8", maxBytes=10*1024*1024, backupCount=5)
     file_handler.setFormatter(file_formatter)
 
     # Настройка основного логгера

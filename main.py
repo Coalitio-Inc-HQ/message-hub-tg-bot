@@ -4,7 +4,7 @@ import aiohttp
 from aiogram import types
 from aiohttp import web
 from fastapi import FastAPI, Request
-from fastapi.middleware.cors import CORSMiddleware
+
 
 import handlers  # noqa: F401
 from core.config import (
@@ -21,50 +21,6 @@ from db.database import db_run
 from db.requests import get_destination
 from logger.log_config import logger
 from models.models import Message as MessageModel
-
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    logger.info("Происходит инициализация компонента.")
-
-    logger.info("Происходит регистрация платформы на сервере мессенджера.")
-    await register_platform()
-    logger.info("Регистрация платформы завершена.")
-
-    logger.info("Происходит подключение к локальной базе данных.")
-    await db_run()
-    logger.info("Подключение к базе данных завершено.")
-
-    logger.info("Происходит установка вебхука на бота.")
-    await bot.set_webhook(url=WEBHOOK_URI)
-    logger.info("Вебхук установлен.")
-
-    webhook = await bot.get_webhook_info()
-    logger.info(webhook)
-
-    logger.info("Инициализация компонента завершена.")
-
-    yield
-
-    logger.info("Происходит удаление вебхука бота.")
-    await bot.delete_webhook()
-    logger.info("Вебхук удален.")
-
-    logger.info("Происходит закрытие сессии.")
-    await bot.session.close()
-    logger.info("Сессия закрыта.")
-
-
-app = FastAPI(lifespan=lifespan)
-
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 
 async def handle_webhook(request: Request):
@@ -89,7 +45,13 @@ async def send_message(messageModel: MessageModel):
         raise web.HTTPNotFound()
 
     for user in users:
-        await bot.send_message(chat_id=user.telegram_id, text=messageModel.text)
+        try:
+            await bot.send_message(chat_id=user.telegram_id, text=messageModel.text)
+        except Exception as e:
+            logger.exception(
+                f"Не удалось отправить сообщение пользователю {user.name}: {e}",
+                exc_info=False,
+            )
     return web.Response()
 
 
@@ -101,20 +63,55 @@ async def register_platform() -> None:
             response.raise_for_status()
 
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    logger.info("Происходит инициализация компонента.")
+
+    logger.info("Происходит регистрация платформы на сервере мессенджера.")
+    await register_platform()
+    logger.info("Регистрация платформы завершена.")
+
+    logger.info("Происходит подключение к локальной базе данных.")
+    await db_run()
+    logger.info("Подключение к базе данных завершено.")
+
+    logger.info("Происходит установка вебхука на бота.")
+    await bot.set_webhook(url=WEBHOOK_URI)
+    logger.info("Вебхук установлен.")
+
+    logger.info("Информация об установленном вебхуке:")
+    webhook = await bot.get_webhook_info()
+    logger.info(webhook)
+
+    logger.info("Инициализация компонента завершена.")
+
+    yield
+
+    logger.info("Происходит удаление вебхука бота.")
+    await bot.delete_webhook()
+    logger.info("Вебхук удален.")
+
+    logger.info("Происходит закрытие сессии.")
+    await bot.session.close()
+    logger.info("Сессия закрыта.")
+
+
+app = FastAPI(lifespan=lifespan)
+
+
+@app.post(WEBHOOK_PATH)
+async def webhook_endpoint(request: Request):
+    logger.info(f"Запрос от Telegram с адресом: {request.client.host}")
+    return await handle_webhook(request)
+
+
+@app.post("/webhook/send_message")
+async def message_service_endpoint(messageModel: MessageModel, request: Request):
+    logger.info(f"Запрос от сервера мессенджера с адресом: {request.client.host}")
+    return await send_message(messageModel)
+
+
 if __name__ == "__main__":
-
-    @app.get("/")
-    async def hello():
-        return "Hello, World!"
-
-    @app.post(WEBHOOK_PATH)
-    async def webhook_endpoint(request: Request):
-        return await handle_webhook(request)
-
-    @app.post("/webhook/send_message")
-    async def message_service_endpoint(messageModel: MessageModel):
-        return await send_message(messageModel)
-
     try:
         import uvicorn
 
