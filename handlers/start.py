@@ -23,7 +23,7 @@ async def command_start_handler(message: Message) -> None:
         return
 
     url = MESSAGE_SERVICE_USER_REGISTRATION_URL
-    payload = {"platform_name": "telegram", "name": message.from_user.username}
+    payload = {"platform_name": "telegram", "name": message.from_user.full_name}
 
     try:
         async with aiohttp.ClientSession() as session:
@@ -38,7 +38,7 @@ async def command_start_handler(message: Message) -> None:
             user_id=user_id,
             chat_id=chat_id,
             telegram_id=message.from_user.id,
-            name=message.from_user.username,
+            name=message.from_user.full_name,
         )
         await add_user(user_data)
         logger.info(

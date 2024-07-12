@@ -49,7 +49,7 @@ async def send_message(messageModel: MessageModel):
             await bot.send_message(chat_id=user.telegram_id, text=messageModel.text)
         except Exception as e:
             logger.exception(
-                f"Не удалось отправить сообщение пользователю {user.name}: {e}",
+                f"Не удалось отправить сообщение пользователю {user.telegram_id}: {e}",
                 exc_info=False,
             )
     return web.Response()
@@ -101,13 +101,13 @@ app = FastAPI(lifespan=lifespan)
 
 @app.post(WEBHOOK_PATH)
 async def webhook_endpoint(request: Request):
-    logger.info(f"Запрос от Telegram с адресом: {request.client.host}")
+    logger.info("Получен запрос от Telegram.")
     return await handle_webhook(request)
 
 
 @app.post("/webhook/send_message")
 async def message_service_endpoint(messageModel: MessageModel, request: Request):
-    logger.info(f"Запрос от сервера мессенджера с адресом: {request.client.host}")
+    logger.info("Получен запрос от сервера мессенджера.")
     return await send_message(messageModel)
 
 

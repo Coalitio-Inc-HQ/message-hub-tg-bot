@@ -39,8 +39,8 @@ async def message_handler(message: types.Message) -> None:
             async with session.post(url=url, json=payload) as response:
                 response.raise_for_status()
 
-        logger.info("Отправлено сообщение: ")
-        logger.info(message_data.model_dump())
+        logger.info(f"Обработано сообщение от пользователя {message.from_user.id}.")
+        # logger.info(message_data.model_dump())
         # await message.reply("Ваше сообщение принято.")
 
     except Exception as err:

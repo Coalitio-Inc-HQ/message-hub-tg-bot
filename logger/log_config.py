@@ -5,7 +5,7 @@ from colorlog import ColoredFormatter
 def setup_logging():
     # Создаем форматтер для цветного логирования в консоль
     console_formatter = ColoredFormatter(
-        "%(log_color)s%(asctime)s - %(levelname)s - %(message)s",
+        "%(log_color)s%(asctime)s - %(levelname)s - %(reset)s%(message)s",
         datefmt=None,
         reset=True,
         log_colors={
