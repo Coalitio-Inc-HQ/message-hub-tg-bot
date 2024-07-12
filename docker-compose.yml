@@ -6,5 +6,9 @@ services:
       - .env
     volumes:
       - .:/app
+      - sqlite_db:/app/data
     ports:
       - "8002:8002"
+
+volumes:
+  sqlite_db:
