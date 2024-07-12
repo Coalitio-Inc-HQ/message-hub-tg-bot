@@ -59,7 +59,7 @@ async def register_platform() -> None:
     url = MESSAGE_SERVICE_PLATFORM_REGISTRATION_URL
     payload = {"platform_name": "telegram", "url": WEBHOOK_HOST}
     async with aiohttp.ClientSession() as session:
-        async with session.post(url, json=payload) as response:
+        async with session.post(url=url, json=payload) as response:
             response.raise_for_status()
 
 
