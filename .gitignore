@@ -2,6 +2,7 @@
 test.py
 *.sqlite3
 logs
+todo123
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
