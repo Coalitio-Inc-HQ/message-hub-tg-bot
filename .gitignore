@@ -1,7 +1,7 @@
 # custom
 test.py
 *.sqlite3
-logs
+app.log*
 todo123
 
 # Byte-compiled / optimized / DLL files
