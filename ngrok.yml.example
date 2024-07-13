@@ -1,0 +1,9 @@
+version: "2"
+authtoken: <TOKEN>
+tunnels:
+  httpbin:
+    proto: http
+    schemes:
+        - https
+    addr: http://tg-bot:8002
+    domain: <DOMAIN>

@@ -3,6 +3,7 @@ test.py
 *.sqlite3
 app.log*
 todo123
+ngrok.yml
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

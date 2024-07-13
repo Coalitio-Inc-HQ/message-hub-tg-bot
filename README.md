@@ -1,3 +1,13 @@
+### ngrok
+
+Скопируйте файл `ngrok.yml.example` в `ngrok.yml`:
+
+```sh
+cp ngrok.yml.example ngrok.yml
+```
+Убедитесь, что вы заполнили файл `ngrok.yml` правильными значениями конфигурации перед запуском проекта.
+
+
 # TG BOT for MessageHUB
 
 ## Описание
