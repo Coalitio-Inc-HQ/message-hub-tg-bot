@@ -1,13 +1,3 @@
-### ngrok
-
-Скопируйте файл `ngrok.yml.example` в `ngrok.yml`:
-
-```sh
-cp ngrok.yml.example ngrok.yml
-```
-Убедитесь, что вы заполнили файл `ngrok.yml` правильными значениями конфигурации перед запуском проекта.
-
-
 # TG BOT for MessageHUB
 
 ## Описание
@@ -77,12 +67,21 @@ cp .env.example .env
 python main.py
 ```
 
-## Докер
+## Docker
 
 Можно использовать Docker Compose для запуска компонента. Измените содержимое .env файла (пункт 5 выше). Затем в корневой папке проекта выполните:
 ```sh
 docker-compose up --build
 ```
+
+## ngrok
+
+Скопируйте файл `ngrok.yml.example` в `ngrok.yml`:
+
+```sh
+cp ngrok.yml.example ngrok.yml
+```
+Убедитесь, что вы заполнили файл `ngrok.yml` правильными значениями конфигурации перед запуском проекта. Затем в корневой папке запустите компонент с помощью Docker Compose.
 
 ## Примечания
 

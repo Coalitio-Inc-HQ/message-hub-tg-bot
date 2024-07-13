@@ -11,7 +11,7 @@ services:
       - "8002:8002"
 
   ngrok:
-    container_name: ngrok
+    container_name: tg_bot_ngrok
     image: ngrok/ngrok:latest
     restart: unless-stopped
     command:
