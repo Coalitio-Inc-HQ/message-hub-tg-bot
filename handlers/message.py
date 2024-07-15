@@ -47,4 +47,4 @@ async def message_handler(message: types.Message) -> None:
         await message.answer(
             "Приносим извинения! Ваше сообщение не было отправлено. Мы уже решаем данную проблему!"
         )
-        logger.exception(f"Произошла ошибка: {str(err)}", exc_info=True)
+        logger.exception(f"Произошла ошибка: {str(err)}", exc_info=False)

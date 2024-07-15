@@ -4,6 +4,7 @@ env = Env()
 env.read_env(override=True)
 
 BOT_TOKEN = env.str("BOT_TOKEN")
+SECRET_WORD = env.str("SECRET_WORD")
 
 SERVER_HOST = env.str("SERVER_HOST")
 SERVER_PORT = env.int("SERVER_PORT")

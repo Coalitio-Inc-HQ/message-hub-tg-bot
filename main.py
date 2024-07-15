@@ -8,11 +8,10 @@ from fastapi import FastAPI, Request
 
 import handlers  # noqa: F401
 from core.config import (
-    BOT_TOKEN,
+    SECRET_WORD,
     MESSAGE_SERVICE_PLATFORM_REGISTRATION_URL,
     SERVER_HOST,
     SERVER_PORT,
-    WEBHOOK_HOST,
     WEBHOOK_PATH,
     WEBHOOK_URI,
 )
@@ -24,11 +23,9 @@ from models.models import Message as MessageModel
 
 
 async def handle_webhook(request: Request):
-    url = str(request.url)
-    index = url.rfind("/")
-    token = url[index + 1 :]
+    secret_token = request.headers.get('X-Telegram-Bot-Api-Secret-Token')
 
-    if token == BOT_TOKEN:
+    if secret_token == SECRET_WORD:
         update = types.Update(**await request.json())
         await dp.feed_webhook_update(bot, update)
         return web.Response()
@@ -57,7 +54,7 @@ async def send_message(messageModel: MessageModel):
 
 async def register_platform() -> None:
     url = MESSAGE_SERVICE_PLATFORM_REGISTRATION_URL
-    payload = {"platform_name": "telegram", "url": WEBHOOK_HOST}
+    payload = {"platform_name": "telegram", "url": SECRET_WORD}
     async with aiohttp.ClientSession() as session:
         async with session.post(url=url, json=payload) as response:
             response.raise_for_status()
@@ -76,7 +73,7 @@ async def lifespan(app: FastAPI):
     logger.info("Подключение к базе данных завершено.")
 
     logger.info("Происходит установка вебхука на бота.")
-    await bot.set_webhook(url=WEBHOOK_URI)
+    await bot.set_webhook(url=WEBHOOK_URI, secret_token=SECRET_WORD)
     logger.info("Вебхук установлен.")
 
     logger.info("Информация об установленном вебхуке:")
@@ -106,7 +103,7 @@ async def webhook_endpoint(request: Request):
 
 
 @app.post("/webhook/send_message")
-async def message_service_endpoint(messageModel: MessageModel, request: Request):
+async def message_service_endpoint(messageModel: MessageModel):
     logger.info("Получен запрос от сервера мессенджера.")
     return await send_message(messageModel)
 
