@@ -13,7 +13,7 @@ WEBHOOK_HOST = env.str("WEBHOOK_HOST")
 WEBHOOK_PATH = "/webhook/aiogram"
 WEBHOOK_URI = WEBHOOK_HOST + WEBHOOK_PATH
 
-WEBHOOK_HOST_DOCKER = "http://host.docker.internal:"+SERVER_PORT
+WEBHOOK_HOST_DOCKER = "http://host.docker.internal:"+str(SERVER_PORT)
 
 DATABASE_URI = env.str("DATABASE_URI")
 
