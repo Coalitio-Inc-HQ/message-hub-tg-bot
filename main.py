@@ -5,13 +5,13 @@ from aiogram import types
 from aiohttp import web
 from fastapi import FastAPI, Request
 
-
 import handlers  # noqa: F401
 from core.config import (
-    SECRET_WORD,
     MESSAGE_SERVICE_PLATFORM_REGISTRATION_URL,
+    SECRET_WORD,
     SERVER_HOST,
     SERVER_PORT,
+    WEBHOOK_HOST_DOCKER,
     WEBHOOK_PATH,
     WEBHOOK_URI,
 )
@@ -23,7 +23,7 @@ from models.models import Message as MessageModel
 
 
 async def handle_webhook(request: Request):
-    secret_token = request.headers.get('X-Telegram-Bot-Api-Secret-Token')
+    secret_token = request.headers.get("X-Telegram-Bot-Api-Secret-Token")
 
     if secret_token == SECRET_WORD:
         update = types.Update(**await request.json())
@@ -52,9 +52,10 @@ async def send_message(messageModel: MessageModel):
     return web.Response()
 
 
+# изменить WEBHOOK_HOST_DOCKER на WEBHOOK_HOST, если бот запущен не на сервере
 async def register_platform() -> None:
     url = MESSAGE_SERVICE_PLATFORM_REGISTRATION_URL
-    payload = {"platform_name": "telegram", "url": SECRET_WORD}
+    payload = {"platform_name": "telegram", "url": WEBHOOK_HOST_DOCKER}
     async with aiohttp.ClientSession() as session:
         async with session.post(url=url, json=payload) as response:
             response.raise_for_status()
