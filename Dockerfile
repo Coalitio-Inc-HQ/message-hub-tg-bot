@@ -13,9 +13,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Копируем все файлы проекта в контейнер
 COPY . .
 
-# Копируем файл конфигурации окружения
-COPY .env.example .env
-
 # Определяем переменную окружения
 ENV PYTHONUNBUFFERED=1
 
