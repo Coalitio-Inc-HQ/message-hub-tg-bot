@@ -9,7 +9,7 @@ from core.config import MESSAGE_SERVICE_USER_REGISTRATION_URL
 from db.requests import add_user, get_user
 from models.models import User as UserModel
 
-aiogram_start_router = Router("Aiogram Start Handler Router")
+aiogram_start_router = Router()
 
 @aiogram_start_router.message(CommandStart())
 async def command_start_handler(message: Message) -> None:

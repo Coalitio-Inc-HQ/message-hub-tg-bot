@@ -8,7 +8,7 @@ from core.config import MESSAGE_SERVICE_SEND_MESSAGE_URL
 from db.requests import get_user
 from models.models import Message as MessageModel
 
-aiogram_message_router = Router("Aiogram Message Handler Router")
+aiogram_message_router = Router()
 
 
 @aiogram_message_router.message(F.text)
