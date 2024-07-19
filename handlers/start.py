@@ -11,12 +11,9 @@ from models.models import User as UserModel
 
 aiogram_start_router = Router()
 
+
 @aiogram_start_router.message(CommandStart())
 async def command_start_handler(message: Message) -> None:
-    """
-    This handler receives messages with `/start` command
-    """
-
     if await get_user(telegram_id=message.from_user.id):
         await message.answer(
             f"Здравствуйте, {message.from_user.full_name}! Вы уже зарегистрированы!"

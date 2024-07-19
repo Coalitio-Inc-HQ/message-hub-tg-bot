@@ -13,9 +13,6 @@ aiogram_message_router = Router()
 
 @aiogram_message_router.message(F.text)
 async def message_handler(message: Message) -> None:
-    """
-    Handler messages
-    """
     try:
         user = await get_user(telegram_id=message.from_user.id)
 
