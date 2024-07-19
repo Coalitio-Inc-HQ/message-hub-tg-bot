@@ -24,11 +24,11 @@ async def delete_user(
         query = delete(User)
 
         if telegram_id is not None:
-            query.where(User.telegram_id == telegram_id)
+            query = query.where(User.telegram_id == telegram_id)
         elif user_id is not None:
-            query.where(User.user_id == user_id)
+            query = query.where(User.user_id == user_id)
         elif chat_id is not None:
-            query.where(User.chat_id == chat_id)
+            query = query.where(User.chat_id == chat_id)
         else:
             raise ValueError("At least one parameter must be provided.")
 
