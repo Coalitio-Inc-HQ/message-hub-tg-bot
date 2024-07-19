@@ -3,14 +3,15 @@ from logger.log_config import logger
 import aiohttp
 from aiogram.filters import CommandStart
 from aiogram.types import Message
+from aiogram import Router
 
 from core.config import MESSAGE_SERVICE_USER_REGISTRATION_URL
-from core.loader import dp
 from db.requests import add_user, get_user
 from models.models import User as UserModel
 
+aiogram_start_router = Router("Aiogram Start Handler Router")
 
-@dp.message(CommandStart())
+@aiogram_start_router.message(CommandStart())
 async def command_start_handler(message: Message) -> None:
     """
     This handler receives messages with `/start` command

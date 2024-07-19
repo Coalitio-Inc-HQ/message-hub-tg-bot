@@ -5,7 +5,6 @@ from aiogram import types
 from aiohttp import web
 from fastapi import FastAPI, Request
 
-import handlers  # noqa: F401
 from core.config import (
     MESSAGE_SERVICE_PLATFORM_REGISTRATION_URL,
     SECRET_WORD,

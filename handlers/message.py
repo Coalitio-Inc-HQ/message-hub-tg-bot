@@ -1,16 +1,18 @@
 from logger.log_config import logger
 
 import aiohttp
-from aiogram import F, types
+from aiogram import F, Router
+from aiogram.types import Message
 
 from core.config import MESSAGE_SERVICE_SEND_MESSAGE_URL
-from core.loader import dp
 from db.requests import get_user
 from models.models import Message as MessageModel
 
+aiogram_message_router = Router("Aiogram Message Handler Router")
 
-@dp.message(F.text)
-async def message_handler(message: types.Message) -> None:
+
+@aiogram_message_router.message(F.text)
+async def message_handler(message: Message) -> None:
     """
     Handler messages
     """
