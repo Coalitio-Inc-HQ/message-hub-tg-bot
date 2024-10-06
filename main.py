@@ -18,7 +18,7 @@ from core.loader import bot, dp
 from db.database import db_run
 from db.requests import get_destination
 from logger.log_config import logger
-from models.models import Message as MessageModel
+from models.models import Message as MessageModel, Event
 
 
 async def handle_webhook(request: Request):
@@ -106,6 +106,17 @@ async def webhook_endpoint(request: Request):
 async def message_service_endpoint(messageModel: MessageModel):
     logger.info("Получен запрос от сервера мессенджера.")
     return await send_message(messageModel)
+
+
+@app.post("/webhook/send_personal_message")
+async def message_service_endpoint(messageModel: MessageModel):
+    logger.info("Получен запрос от сервера мессенджера.")
+    return await send_message(messageModel)
+
+@app.post("/webhook/event")
+async def message_service_endpoint(event: Event):
+    logger.info("Получен запрос от сервера мессенджера.")
+    return {"status":"ok"}
 
 
 if __name__ == "__main__":

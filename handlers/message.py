@@ -29,6 +29,7 @@ async def message_handler(message: Message) -> None:
             sender_id=user.user_id,
             text=message.text,
             sended_at=message.date.isoformat(),
+            attachments={}
         )
 
         url = MESSAGE_SERVICE_SEND_MESSAGE_URL
