@@ -5,9 +5,16 @@ from aiogram.filters import CommandStart
 from aiogram.types import Message
 from aiogram import Router
 
-from core.config import MESSAGE_SERVICE_USER_REGISTRATION_URL
+from core.config import MESSAGE_SERVICE_USER_REGISTRATION_URL, S3_BUCKET_URL, BOT_TOKEN
 from db.requests import add_user, get_user
 from models.models import User as UserModel
+
+from uuid import uuid4
+
+import os
+
+from aiogram import Bot
+bot = Bot(token=BOT_TOKEN)
 
 aiogram_start_router = Router()
 
@@ -20,8 +27,29 @@ async def command_start_handler(message: Message) -> None:
         )
         return
 
+
     url = MESSAGE_SERVICE_USER_REGISTRATION_URL
     payload = {"platform_name": "telegram", "name": message.from_user.full_name}
+
+    user_photos = await bot.get_user_profile_photos(message.from_user.id)
+
+    if user_photos.total_count > 0:
+        s3_id = uuid4()
+
+        file_id = user_photos.photos[0][-1].file_id
+        file = await bot.get_file(file_id)
+        await bot.download_file(file.file_path, f"./temp/{s3_id}.png")
+        try:
+            with open(f"./temp/{s3_id}.png", "rb") as f:
+                try:
+                    async with aiohttp.ClientSession() as session:
+                        async with session.put(url=S3_BUCKET_URL+"/"+str(s3_id)+".png",data=f) as response:
+                            payload["icon_url"]=S3_BUCKET_URL+"/"+str(s3_id)+".png"
+                except Exception as err:
+                    logger.exception(f"Произошла ошибка: {str(err)}", exc_info=False)
+        finally:
+            os.remove(f"./temp/{s3_id}.png")
+
 
     try:
         async with aiohttp.ClientSession() as session:
