@@ -50,7 +50,6 @@ async def command_start_handler(message: Message) -> None:
         finally:
             os.remove(f"./temp/{s3_id}.png")
 
-
     try:
         async with aiohttp.ClientSession() as session:
             async with session.post(url=url, json=payload) as response:

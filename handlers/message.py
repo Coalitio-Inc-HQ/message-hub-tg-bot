@@ -10,7 +10,6 @@ from models.models import Message as MessageModel
 
 aiogram_message_router = Router()
 
-
 @aiogram_message_router.message(F.text)
 async def message_handler(message: Message) -> None:
     try:

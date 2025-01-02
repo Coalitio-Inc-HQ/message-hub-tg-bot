@@ -5,7 +5,7 @@ class Message(BaseModel):
     id: int = Field(..., description="Идентификатор сообщения")
     chat_id: int = Field(..., description="Идентификатор чата")
     sender_id: int = Field(..., description="Идентификатор отправителя")
-    text: str = Field(..., description="Текст сообщения")
+    text: str | None = Field(..., description="Текст сообщения")
     sended_at: str = Field(..., description="Дата отправки сообщения")
     attachments: dict
 

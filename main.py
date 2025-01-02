@@ -5,6 +5,13 @@ from aiogram import types
 from aiohttp import web
 from fastapi import FastAPI, Request
 
+from aiogram.types import InputFile
+
+import uuid
+
+import os
+import shutil
+
 from core.config import (
     MESSAGE_SERVICE_PLATFORM_REGISTRATION_URL,
     SECRET_WORD,
@@ -40,16 +47,89 @@ async def send_message(messageModel: MessageModel):
     if not users:
         raise web.HTTPNotFound()
 
-    for user in users:
-        try:
-            await bot.send_message(chat_id=user.telegram_id, text=messageModel.text)
-        except Exception as e:
-            logger.exception(
-                f"Не удалось отправить сообщение пользователю {user.telegram_id}: {e}",
-                exc_info=False,
-            )
+    try:
+        temp_dir = f"./temp/{str(uuid.uuid4())}"
+        os.mkdir(temp_dir, mode=777)
+
+        if (messageModel.attachments):
+            if (messageModel.attachments["images"] and len(messageModel.attachments["images"]) >0):
+                media_images = []
+                for image in messageModel.attachments["images"]:
+                    await download_file(image["url"], temp_dir+"/"+image["name"])
+                    media_images.append(types.InputMediaPhoto(media=types.FSInputFile(path= temp_dir+"/"+image["name"])))
+
+            if (messageModel.attachments["videos"] and len(messageModel.attachments["videos"]) >0):
+                media_video = []
+                for video in messageModel.attachments["videos"]:
+                    await download_file(video["url"], temp_dir+"/"+video["name"])
+                    media_video.append(types.InputMediaVideo(media=types.FSInputFile(path= temp_dir+"/"+video["name"])))
+
+            if (messageModel.attachments["files"] and len(messageModel.attachments["files"]) >0):
+                media_files = []
+                for file in messageModel.attachments["files"]:
+                    await download_file(file["url"], temp_dir+"/"+file["name"])
+                    media_files.append(types.InputMediaDocument(media=types.FSInputFile(temp_dir+"/"+file["name"])))
+
+        for user in users:
+            try:
+                if media_images:
+                    await bot.send_media_group(chat_id=user.telegram_id, media=media_images)
+
+                if media_video:
+                    await bot.send_media_group(chat_id=user.telegram_id, media=media_video)
+                
+                if media_files:
+                    await bot.send_media_group(chat_id=user.telegram_id, media=media_files)
+
+                if (messageModel.text):
+                    await bot.send_message(chat_id=user.telegram_id, text=messageModel.text)
+            except Exception as e:
+                logger.exception(
+                    f"Не удалось отправить сообщение пользователю {user.telegram_id}: {e}",
+                    exc_info=False,
+                )
+
+    except FailDownload as e:
+        logger.exception(
+            f"Не удалось скачать файл {e.url}.",
+            exc_info=False,
+        )
+    except Exception as e:
+        logger.exception(
+            f"Непредвиденная ошибка: {e}",
+            exc_info=False,
+        )
+        raise web.HTTPInternalServerError()
+    finally:
+        shutil.rmtree(temp_dir)
+
     return web.Response()
 
+
+class FailDownload(Exception):
+    url: str
+
+    def __init__(self, *args, url: str):
+        super().__init__(*args)
+        self.url = url
+
+async def download_file(url, save_path):
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as response:
+            if response.status == 200:
+                with open(save_path, 'wb') as f:
+                    while True:
+                        chunk = await response.content.read(1024)  # Чтение файла по 1024 байта
+                        if not chunk:
+                            break
+                        f.write(chunk)
+                print(f"Файл успешно сохранен: {save_path}")
+            else:
+                logger.exception(
+                    f"Не удалось скачать файл. Статус: {response.status}",
+                    exc_info=False,
+                )
+                raise FailDownload(url)
 
 # изменить WEBHOOK_HOST_DOCKER на WEBHOOK_HOST, если бот запущен не на сервере
 async def register_platform() -> None:
