@@ -8,6 +8,8 @@ from core.config import MESSAGE_SERVICE_SEND_MESSAGE_URL
 from db.requests import get_user
 from models.models import Message as MessageModel
 
+import uuid
+
 aiogram_message_router = Router()
 
 @aiogram_message_router.message(F.text)
@@ -32,7 +34,10 @@ async def message_handler(message: Message) -> None:
         )
 
         url = MESSAGE_SERVICE_SEND_MESSAGE_URL
-        payload = message_data.model_dump()
+        payload = {
+            "message": message_data.model_dump(),
+            "event_id": uuid.uuid4(),
+        }
 
         async with aiohttp.ClientSession() as session:
             async with session.post(url=url, json=payload) as response:

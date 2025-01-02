@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import Any
+import uuid
 
 class Message(BaseModel):
     id: int = Field(..., description="Идентификатор сообщения")
@@ -12,6 +13,7 @@ class Message(BaseModel):
 class Event(BaseModel):
     name:str
     data:Any
+    id: uuid.UUID
 
 
 class User(BaseModel):

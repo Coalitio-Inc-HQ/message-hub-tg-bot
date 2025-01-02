@@ -82,7 +82,10 @@ async def message_handler(message: Message, album: list = None) -> None:
         )
 
         url = MESSAGE_SERVICE_SEND_MESSAGE_URL
-        payload = message_data.model_dump()
+        payload = {
+            "message": message_data.model_dump(),
+            "event_id": uuid.uuid4(),
+        }
 
         async with aiohttp.ClientSession() as session:
             async with session.post(url=url, json=payload) as response:
