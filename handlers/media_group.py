@@ -84,12 +84,13 @@ async def message_handler(message: Message, album: list = None) -> None:
         url = MESSAGE_SERVICE_SEND_MESSAGE_URL
         payload = {
             "message": message_data.model_dump(),
-            "event_id": uuid.uuid4(),
+            "event_id": str(uuid.uuid4()),
         }
 
-        async with aiohttp.ClientSession() as session:
-            async with session.post(url=url, json=payload) as response:
-                response.raise_for_status()
+        if text or attachments["files"] or attachments["images"] or attachments["videos"]:
+            async with aiohttp.ClientSession() as session:
+                async with session.post(url=url, json=payload) as response:
+                    response.raise_for_status()
 
         logger.info(f"Обработано сообщение от пользователя {message.from_user.id}.")
         # logger.info(message_data.model_dump())

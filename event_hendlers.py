@@ -29,22 +29,22 @@ async def send_message(event: Event):
     try:
         temp_dir = f"./temp/{str(uuid.uuid4())}"
         os.mkdir(temp_dir, mode=777)
+        media_images = []
+        media_video = []
+        media_files = []
 
         if (messageModel.attachments):
             if (messageModel.attachments["images"] and len(messageModel.attachments["images"]) >0):
-                media_images = []
                 for image in messageModel.attachments["images"]:
                     await download_file(image["url"], temp_dir+"/"+image["name"])
                     media_images.append(types.InputMediaPhoto(media=types.FSInputFile(path= temp_dir+"/"+image["name"])))
 
             if (messageModel.attachments["videos"] and len(messageModel.attachments["videos"]) >0):
-                media_video = []
                 for video in messageModel.attachments["videos"]:
                     await download_file(video["url"], temp_dir+"/"+video["name"])
                     media_video.append(types.InputMediaVideo(media=types.FSInputFile(path= temp_dir+"/"+video["name"])))
 
             if (messageModel.attachments["files"] and len(messageModel.attachments["files"]) >0):
-                media_files = []
                 for file in messageModel.attachments["files"]:
                     await download_file(file["url"], temp_dir+"/"+file["name"])
                     media_files.append(types.InputMediaDocument(media=types.FSInputFile(temp_dir+"/"+file["name"])))

@@ -36,7 +36,7 @@ async def message_handler(message: Message) -> None:
         url = MESSAGE_SERVICE_SEND_MESSAGE_URL
         payload = {
             "message": message_data.model_dump(),
-            "event_id": uuid.uuid4(),
+            "event_id": str(uuid.uuid4()),
         }
 
         async with aiohttp.ClientSession() as session:

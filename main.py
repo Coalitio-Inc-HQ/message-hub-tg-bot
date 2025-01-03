@@ -18,9 +18,9 @@ from core.config import (
 from core.loader import bot, dp
 from db.database import db_run
 from logger.log_config import logger
-from models.models import Message as Event
+from models.models import Event
 
-from .event_hendlers import emit_event
+from event_hendlers import emit_event
 
 async def handle_webhook(request: Request):
     secret_token = request.headers.get("X-Telegram-Bot-Api-Secret-Token")
