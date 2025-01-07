@@ -36,18 +36,21 @@ async def send_message(event: Event):
         if (messageModel.attachments):
             if (messageModel.attachments["images"] and len(messageModel.attachments["images"]) >0):
                 for image in messageModel.attachments["images"]:
-                    await download_file(image["url"], temp_dir+"/"+image["name"])
-                    media_images.append(types.InputMediaPhoto(media=types.FSInputFile(path= temp_dir+"/"+image["name"])))
+                    file_path = temp_dir+"/"+str(uuid.uuid4())+"."+image["name"].split(".")[-1]
+                    await download_file(image["url"], file_path)
+                    media_images.append(types.InputMediaPhoto(media=types.FSInputFile(path=file_path,filename=image["name"])))
 
             if (messageModel.attachments["videos"] and len(messageModel.attachments["videos"]) >0):
                 for video in messageModel.attachments["videos"]:
-                    await download_file(video["url"], temp_dir+"/"+video["name"])
-                    media_video.append(types.InputMediaVideo(media=types.FSInputFile(path= temp_dir+"/"+video["name"])))
+                    file_path = temp_dir+"/"+str(uuid.uuid4())+"."+video["name"].split(".")[-1]
+                    await download_file(video["url"], file_path)
+                    media_video.append(types.InputMediaVideo(media=types.FSInputFile(path=file_path, filename=video["name"])))
 
             if (messageModel.attachments["files"] and len(messageModel.attachments["files"]) >0):
                 for file in messageModel.attachments["files"]:
-                    await download_file(file["url"], temp_dir+"/"+file["name"])
-                    media_files.append(types.InputMediaDocument(media=types.FSInputFile(temp_dir+"/"+file["name"])))
+                    file_path = temp_dir+"/"+str(uuid.uuid4())+"."+file["name"].split(".")[-1]
+                    await download_file(file["url"], file_path)
+                    media_files.append(types.InputMediaDocument(media=types.FSInputFile(path=file_path, filename=file["name"])))
 
         for user in users:
             try:

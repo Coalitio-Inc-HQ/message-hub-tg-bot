@@ -16,6 +16,9 @@ import os
 
 import shutil
 
+from moviepy import VideoFileClip
+from PIL import Image
+
 from aiogram import Bot
 bot = Bot(token=BOT_TOKEN)
 
@@ -57,7 +60,7 @@ async def message_handler(message: Message, album: list = None) -> None:
                     if message_album.video.file_size> 20971520:
                         await message_album.answer("Размер видео превышает 20Мб. Видео не будет загружено.")
                     else:
-                        attachments["videos"].append(await prepare_file(temp_dir, message_album.video.file_id, file_name=message_album.video.file_name)) 
+                        attachments["videos"].append(await prepare_file(temp_dir, message_album.video.file_id, file_name=message_album.video.file_name, video=True)) 
 
                 if message_album.document:
                     if message_album.document.file_size> 20971520:
@@ -103,7 +106,7 @@ async def message_handler(message: Message, album: list = None) -> None:
         logger.exception(f"Произошла ошибка: {str(err)}", exc_info=False)
 
 
-async def prepare_file(temp_dir: str, bot_file_id, file_pref: str = None, file_name: str = None) -> dict:
+async def prepare_file(temp_dir: str, bot_file_id, file_pref: str = None, file_name: str = None, video: bool = None) -> dict:
     file = await bot.get_file(bot_file_id)
     
     s3_id = uuid.uuid4()
@@ -112,10 +115,43 @@ async def prepare_file(temp_dir: str, bot_file_id, file_pref: str = None, file_n
 
     await bot.download_file(file.file_path, local_file_path)
 
+    url = None
+
     with open(local_file_path, "rb") as f:
         async with aiohttp.ClientSession() as session:
             async with session.put(url=S3_BUCKET_URL+"/"+str(s3_id)+(file_pref if file_pref else "."+file_name.split(".")[-1]),data=f) as response:
-                return {
-                    "url": S3_BUCKET_URL+"/"+str(s3_id)+(file_pref if file_pref else "."+file_name.split(".")[-1]),
-                    "name": str(s3_id)+file_pref if file_pref else file_name
-                }
+                url = S3_BUCKET_URL+"/"+str(s3_id)+(file_pref if file_pref else "."+file_name.split(".")[-1])
+                response.raise_for_status()
+
+
+    if video:
+        return {
+            "url": url,
+            "name": str(s3_id)+file_pref if file_pref else file_name,
+            "miniature":{
+                "url": await generete_prevue(temp_dir, local_file_path)
+            }
+        }      
+    else:
+        return {
+            "url": url,
+            "name": str(s3_id)+file_pref if file_pref else file_name
+        }
+
+async def generete_prevue(temp_dir: str,video_name: str):
+    clip = VideoFileClip(video_name)
+    frame = clip.get_frame(2)
+    image = Image.fromarray(frame)
+    
+    output_filename = str(uuid.uuid4())+".jpg"
+
+    image.save(temp_dir+'/'+output_filename)
+
+    clip.close()
+    image.close()
+
+    with open(temp_dir+'/'+output_filename, "rb") as f:
+        async with aiohttp.ClientSession() as session:
+            async with session.put(url=S3_BUCKET_URL+"/"+output_filename,data=f) as response:
+                response.raise_for_status()
+                return S3_BUCKET_URL+"/"+output_filename
