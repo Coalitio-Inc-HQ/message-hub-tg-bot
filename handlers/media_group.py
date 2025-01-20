@@ -119,7 +119,7 @@ async def prepare_file(temp_dir: str, bot_file_id, file_pref: str = None, file_n
 
     with open(local_file_path, "rb") as f:
         async with aiohttp.ClientSession() as session:
-            async with session.put(url=S3_BUCKET_URL+"/"+str(s3_id)+(file_pref if file_pref else "."+file_name.split(".")[-1]),data=f) as response:
+            async with session.put(url=S3_BUCKET_URL+"/"+str(s3_id)+(file_pref if file_pref else "."+file_name.split(".")[-1]),data=f.read()) as response:
                 url = S3_BUCKET_URL+"/"+str(s3_id)+(file_pref if file_pref else "."+file_name.split(".")[-1])
                 response.raise_for_status()
 
