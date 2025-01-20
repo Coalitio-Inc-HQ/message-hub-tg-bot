@@ -32,7 +32,6 @@ class AlbumMiddleware(BaseMiddleware):
         if not event.media_group_id:
             return await handler(event, data)
 
-        print(f"Получено сообщение с media_group_id={event.media_group_id}")
         total_before = self.collect_album_messages(event)
 
         await asyncio.sleep(self.latency)

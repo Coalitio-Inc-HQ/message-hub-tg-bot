@@ -21,6 +21,7 @@ aiogram_start_router = Router()
 
 @aiogram_start_router.message(CommandStart())
 async def command_start_handler(message: Message) -> None:
+    # Проверяем зарегестирован ли пользователь
     if await get_user(telegram_id=message.from_user.id):
         await message.answer(
             f"Здравствуйте, {message.from_user.full_name}! Вы уже зарегистрированы!"
@@ -31,8 +32,8 @@ async def command_start_handler(message: Message) -> None:
     url = MESSAGE_SERVICE_USER_REGISTRATION_URL
     payload = {"platform_name": "telegram", "name": message.from_user.full_name}
 
+    # Получаем аватарку пользователя
     user_photos = await bot.get_user_profile_photos(message.from_user.id)
-
     if user_photos.total_count > 0:
         s3_id = uuid4()
 
@@ -75,6 +76,6 @@ async def command_start_handler(message: Message) -> None:
 
     except Exception as err:
         await message.answer(
-            "Приносим извинения! Ваше сообщение не было отправлено. Мы уже решаем данную проблему!"
+            "Приносим извинения! Произошла непредвиденная ошибка при регестрации. Мы уже решаем данную проблему!"
         )
         logger.exception(f"Произошла ошибка: {str(err)}", exc_info=False)

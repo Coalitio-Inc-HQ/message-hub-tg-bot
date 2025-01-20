@@ -25,7 +25,7 @@ async def message_handler(message: Message) -> None:
             return
 
         message_data = MessageModel(
-            id=0,
+            id=-1,
             chat_id=user.chat_id,
             sender_id=user.user_id,
             text=message.text,

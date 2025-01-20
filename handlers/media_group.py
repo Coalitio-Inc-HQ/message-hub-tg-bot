@@ -58,13 +58,13 @@ async def message_handler(message: Message, album: list = None) -> None:
 
                 if message_album.video:
                     if message_album.video.file_size> 20971520:
-                        await message_album.answer("Размер видео превышает 20Мб. Видео не будет загружено.")
+                        await message_album.answer("Размер видео превышает 20Мб. Видео не будет загружено.", reply_to_message_id=message_album.message_id)
                     else:
                         attachments["videos"].append(await prepare_file(temp_dir, message_album.video.file_id, file_name=message_album.video.file_name, video=True)) 
 
                 if message_album.document:
                     if message_album.document.file_size> 20971520:
-                        await message_album.answer("Размер файла превышает 20Мб. Файл не будет загружен.")
+                        await message_album.answer("Размер файла превышает 20Мб. Файл не будет загружен.", reply_to_message_id=message_album.message_id)
                     else:                        
                         attachments["files"].append(await prepare_file(temp_dir, message_album.document.file_id, file_name=message_album.document.file_name)) 
 

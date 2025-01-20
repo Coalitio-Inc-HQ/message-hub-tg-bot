@@ -121,9 +121,10 @@ event_handlers = {
 }
 
 async def emit_event(event: Event):
-    arr = event_handlers[event.name]
-    if arr:
-        for item in arr:
-            await item(event)
+    if event.name in event_handlers:
+        arr = event_handlers[event.name]
+        if arr:
+            for item in arr:
+                await item(event)
     else:
         logger.info(f"Ненайден обработчик для события {event.name}.\n", exc_info=False)
