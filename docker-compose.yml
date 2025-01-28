@@ -1,7 +1,7 @@
 services:
-  tg-bot:
+  mh_tg:
     build: .
-    container_name: tg_bot
+    container_name: mh_tg
     env_file:
       - .env
     volumes:
@@ -9,8 +9,22 @@ services:
       - sqlite_db:/app/data
     ports:
       - "8002:8002"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-
+    # extra_hosts:
+    #   - "host.docker.internal:host-gateway"
+    labels:
+      - traefik.enable=true
+      - traefik.http.middlewares.mh_tg_https.redirectscheme.scheme=https
+      - traefik.http.routers.mh_tg.entrypoints=web
+      - traefik.http.routers.mh_tg.middlewares=mh_tg_https@docker
+      - traefik.http.routers.mh_tg.rule=Host(`mh-tg.server_name.youdomain`)
+      - traefik.http.routers.mh_tg_https.entrypoints=websecure
+      - traefik.http.routers.mh_tg_https.rule=Host(`mh-tg.server_name.youdomain`)
+      - traefik.http.routers.mh_tg_https.tls=true
+      - traefik.http.routers.mh_tg_https.tls.certresolver=le
+      - traefik.http.services.mh_tg.loadbalancer.server.port=8002
 volumes:
   sqlite_db:
+networks:
+  default:
+    external:
+      name: traefik_default

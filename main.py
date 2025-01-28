@@ -10,7 +10,7 @@ from core.config import (
     SECRET_WORD,
     SERVER_HOST,
     SERVER_PORT,
-    WEBHOOK_HOST_DOCKER,
+    WEBHOOK_HOST,
     WEBHOOK_PATH,
     WEBHOOK_URI,
 )
@@ -35,7 +35,7 @@ async def handle_webhook(request: Request):
 # изменить WEBHOOK_HOST_DOCKER на WEBHOOK_HOST, если бот запущен не на сервере
 async def register_platform() -> None:
     url = MESSAGE_SERVICE_PLATFORM_REGISTRATION_URL
-    payload = {"platform_name": "telegram", "url": WEBHOOK_HOST_DOCKER}
+    payload = {"platform_name": "telegram", "url": WEBHOOK_HOST}
     async with aiohttp.ClientSession() as session:
         async with session.post(url=url, json=payload) as response:
             response.raise_for_status()

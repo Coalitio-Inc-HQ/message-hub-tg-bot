@@ -1,0 +1,16 @@
+services:
+  tg-bot:
+    build: .
+    container_name: tg_bot
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+      - sqlite_db:/app/data
+    ports:
+      - "8002:8002"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+volumes:
+  sqlite_db:
