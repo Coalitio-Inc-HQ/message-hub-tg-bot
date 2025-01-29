@@ -24,7 +24,7 @@ bot = Bot(token=BOT_TOKEN)
 
 aiogram_group_router = Router()
 
-aiogram_group_router.message.middleware(AlbumMiddleware(0.1))
+aiogram_group_router.message.middleware(AlbumMiddleware(latency=1))
 
 @aiogram_group_router.message()
 async def message_handler(message: Message, album: list = None) -> None:
