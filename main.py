@@ -22,7 +22,7 @@ from models.models import Event
 
 from auth import verify_api_key
 
-from core.config import API_KEY
+from core.config import API_KEY, OUT_API_KEY
 
 from event_hendlers import emit_event
 
@@ -41,7 +41,7 @@ async def register_platform() -> None:
     url = MESSAGE_SERVICE_PLATFORM_REGISTRATION_URL
     payload = {"platform_name": "telegram", "url": WEBHOOK_HOST}
     async with aiohttp.ClientSession() as session:
-        async with session.post(url=url, json=payload) as response:
+        async with session.post(url=url, json=payload, headers={"API-KEY": OUT_API_KEY}) as response:
             response.raise_for_status()
 
 
