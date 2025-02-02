@@ -78,9 +78,9 @@ async def lifespan(app: FastAPI):
     logger.info("Сессия закрыта.")
 
 if API_KEY:
-    app = FastAPI(lifespan=lifespan)
-else:
     app = FastAPI(lifespan=lifespan, docs_url=None, redoc_url=None)
+else:
+    app = FastAPI(lifespan=lifespan)
 
 @app.post(WEBHOOK_PATH)
 async def webhook_endpoint(request: Request):
