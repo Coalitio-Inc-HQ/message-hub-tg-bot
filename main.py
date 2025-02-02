@@ -22,6 +22,8 @@ from models.models import Event
 
 from auth import verify_api_key
 
+from core.config import API_KEY
+
 from event_hendlers import emit_event
 
 async def handle_webhook(request: Request):
@@ -75,9 +77,10 @@ async def lifespan(app: FastAPI):
     await bot.session.close()
     logger.info("Сессия закрыта.")
 
-
-app = FastAPI(lifespan=lifespan)
-
+if API_KEY:
+    app = FastAPI(lifespan=lifespan)
+else:
+    app = FastAPI(lifespan=lifespan, docs_url=None, redoc_url=None)
 
 @app.post(WEBHOOK_PATH)
 async def webhook_endpoint(request: Request):
