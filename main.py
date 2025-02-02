@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 import aiohttp
 from aiogram import types
 from aiohttp import web
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Depends
 
 from core.config import (
     MESSAGE_SERVICE_PLATFORM_REGISTRATION_URL,
@@ -19,6 +19,8 @@ from core.loader import bot, dp
 from db.database import db_run
 from logger.log_config import logger
 from models.models import Event
+
+from auth import verify_api_key
 
 from event_hendlers import emit_event
 
@@ -95,7 +97,7 @@ async def webhook_endpoint(request: Request):
 #     return await send_message(messageModel)
 
 @app.post("/webhook/event")
-async def message_service_endpoint(event: Event):
+async def message_service_endpoint(event: Event, api_key = Depends(verify_api_key)):
     logger.info("Получен запрос от сервера мессенджера.")
 
     await emit_event(event)

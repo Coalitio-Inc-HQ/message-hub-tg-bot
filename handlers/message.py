@@ -10,6 +10,8 @@ from models.models import Message as MessageModel
 
 import uuid
 
+from core.config import OUT_API_KEY
+
 aiogram_message_router = Router()
 
 @aiogram_message_router.message(F.text)
@@ -40,7 +42,7 @@ async def message_handler(message: Message) -> None:
         }
 
         async with aiohttp.ClientSession() as session:
-            async with session.post(url=url, json=payload) as response:
+            async with session.post(url=url, json=payload, headers={"API-KEY": OUT_API_KEY}) as response:
                 response.raise_for_status()
 
         logger.info(f"Обработано сообщение от пользователя {message.from_user.id}.")

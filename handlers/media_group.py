@@ -19,6 +19,8 @@ import shutil
 from moviepy import VideoFileClip
 from PIL import Image
 
+from core.config import OUT_API_KEY
+
 from aiogram import Bot
 bot = Bot(token=BOT_TOKEN)
 
@@ -92,7 +94,7 @@ async def message_handler(message: Message, album: list = None) -> None:
 
         if text or attachments["files"] or attachments["images"] or attachments["videos"]:
             async with aiohttp.ClientSession() as session:
-                async with session.post(url=url, json=payload) as response:
+                async with session.post(url=url, json=payload, headers={"API-KEY": OUT_API_KEY}) as response:
                     response.raise_for_status()
 
         logger.info(f"Обработано сообщение от пользователя {message.from_user.id}.")

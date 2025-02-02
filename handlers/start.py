@@ -13,6 +13,8 @@ from uuid import uuid4
 
 import os
 
+from core.config import OUT_API_KEY
+
 from aiogram import Bot
 bot = Bot(token=BOT_TOKEN)
 
@@ -53,7 +55,7 @@ async def command_start_handler(message: Message) -> None:
 
     try:
         async with aiohttp.ClientSession() as session:
-            async with session.post(url=url, json=payload) as response:
+            async with session.post(url=url, json=payload, headers={"API-KEY": OUT_API_KEY}) as response:
                 response.raise_for_status()
 
                 response_data = await response.json()
