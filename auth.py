@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Depends, Request, HTTPException
 from core.config import API_KEY
-from core import logger
+from logger.log_config import logger
 import datetime
 
 async def verify_api_key(request: Request):
