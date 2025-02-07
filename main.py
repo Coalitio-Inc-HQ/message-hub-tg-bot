@@ -58,7 +58,7 @@ async def lifespan(app: FastAPI):
     logger.info("Подключение к базе данных завершено.")
 
     logger.info("Происходит установка вебхука на бота.")
-    await bot.set_webhook(url=WEBHOOK_URI, secret_token=SECRET_WORD)
+    await bot.set_webhook(url=WEBHOOK_URI, secret_token=SECRET_WORD, allowed_updates=["message", "edited_message"])
     logger.info("Вебхук установлен.")
 
     logger.info("Информация об установленном вебхуке:")

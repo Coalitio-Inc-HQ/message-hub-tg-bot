@@ -11,7 +11,7 @@ import os
 import shutil
 
 from core.loader import bot
-from db.requests import get_destination
+from db.requests import get_destination, add_translate_message, get_translate_message
 from logger.log_config import logger
 from models.models import Message as MessageModel, Event
 
@@ -55,16 +55,23 @@ async def send_message(event: Event):
         for user in users:
             try:
                 if media_images:
-                    await bot.send_media_group(chat_id=user.telegram_id, media=media_images)
+                    res = await bot.send_media_group(chat_id=user.telegram_id, media=media_images)
+                    for item in res:
+                        await add_translate_message(item.message_id, item.chat.id, messageModel.id)
 
                 if media_video:
-                    await bot.send_media_group(chat_id=user.telegram_id, media=media_video)
+                    res = await bot.send_media_group(chat_id=user.telegram_id, media=media_video)
+                    for item in res:
+                        await add_translate_message(item.message_id, item.chat.id, messageModel.id)
                 
                 if media_files:
-                    await bot.send_media_group(chat_id=user.telegram_id, media=media_files)
+                    res = await bot.send_media_group(chat_id=user.telegram_id, media=media_files)
+                    for item in res:
+                        await add_translate_message(item.message_id, item.chat.id, messageModel.id)
 
                 if (messageModel.text):
-                    await bot.send_message(chat_id=user.telegram_id, text=messageModel.text)
+                    res = await bot.send_message(chat_id=user.telegram_id, text=messageModel.text)
+                    await add_translate_message(res.message_id, res.chat.id, messageModel.id)
             except Exception as e:
                 logger.exception(
                     f"Не удалось отправить сообщение пользователю {user.telegram_id}: {e}",
@@ -114,10 +121,25 @@ async def download_file(url, save_path):
                 raise FailDownload(url)
 
 
+async def delete_message(event: Event):
+    translates = await get_translate_message(mh_message_id=int(event.data["message"]["id"]))
+
+    for translate in translates:
+        try:
+            await bot.delete_message(translate.tg_chat_id, translate.tg_message_id)
+        except Exception as e:
+            logger.exception(
+                f"Не удалось удалить сообщение {translate.mh_message_id}: {e}",
+                exc_info=False,
+            )
+
 event_handlers = {
     "chat.new_message": [
         send_message
     ],
+    "chat.delete_message":[
+        delete_message
+    ]
 }
 
 async def emit_event(event: Event):

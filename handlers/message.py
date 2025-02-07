@@ -5,7 +5,7 @@ from aiogram import F, Router
 from aiogram.types import Message
 
 from core.config import MESSAGE_SERVICE_SEND_MESSAGE_URL
-from db.requests import get_user
+from db.requests import get_user, add_translate_message
 from models.models import Message as MessageModel
 
 import uuid
@@ -44,6 +44,8 @@ async def message_handler(message: Message) -> None:
         async with aiohttp.ClientSession() as session:
             async with session.post(url=url, json=payload, headers={"API-KEY": OUT_API_KEY}) as response:
                 response.raise_for_status()
+                res = await response.json()
+                await add_translate_message(message.message_id, user.telegram_id, int(res["message_id"]))
 
         logger.info(f"Обработано сообщение от пользователя {message.from_user.id}.")
         # logger.info(message_data.model_dump())
@@ -54,3 +56,7 @@ async def message_handler(message: Message) -> None:
             "Приносим извинения! Ваше сообщение не было отправлено. Мы уже решаем данную проблему!"
         )
         logger.exception(f"Произошла ошибка: {str(err)}", exc_info=False)
+
+    @aiogram_message_router.edited_message()
+    async def edit_message_handler(message: Message) -> None:
+            print(message)

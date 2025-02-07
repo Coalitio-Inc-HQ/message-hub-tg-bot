@@ -21,6 +21,12 @@ class User(Base):
     telegram_id: Mapped[int] = mapped_column(BigInteger, unique=True)
     name: Mapped[str] = mapped_column(String(32))
 
+class MessageTranslate(Base):
+    __tablename__ = "message_translate"
+
+    mh_message_id: Mapped[int] =  mapped_column()
+    tg_chat_id: Mapped[int] = mapped_column(primary_key=True)
+    tg_message_id: Mapped[int] = mapped_column(primary_key=True)
 
 async def db_run():
     async with engine.begin() as conn:

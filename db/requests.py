@@ -1,6 +1,6 @@
 from sqlalchemy import delete, select, update
 
-from db.database import User, async_session
+from db.database import User, MessageTranslate, async_session
 from models.models import User as UserModel
 
 
@@ -76,4 +76,32 @@ async def get_destination(chat_id: int, user_id: int):
         response = await session.execute(
             select(User).where(User.chat_id == chat_id, User.user_id != user_id)
         )
+        return response.scalars()
+
+
+async def add_translate_message(tg_message_id: int, tg_chat_id: int, mh_message_id: int ) -> None:
+    async with async_session() as session:
+        session.add(
+            MessageTranslate(
+                tg_message_id=tg_message_id,
+                tg_chat_id=tg_chat_id,
+                mh_message_id=mh_message_id,
+            )
+        )
+        await session.commit()
+
+
+
+async def get_translate_message(tg_message_id: int = None, tg_chat_id: int = None, mh_message_id: int = None):
+    async with async_session() as session:
+        query = select(MessageTranslate)
+
+        if tg_message_id is not None:
+            query = query.where(MessageTranslate.tg_message_id == tg_message_id, MessageTranslate.tg_chat_id ==tg_chat_id )
+        elif mh_message_id is not None:
+            query = query.where(MessageTranslate.mh_message_id == mh_message_id)
+        else:
+            raise ValueError("At least one parameter must be provided.")
+
+        response = await session.execute(query)
         return response.scalars()

@@ -5,7 +5,7 @@ from aiogram import F, Router, types
 from aiogram.types import Message
 
 from core.config import MESSAGE_SERVICE_SEND_MESSAGE_URL, S3_BUCKET_URL, BOT_TOKEN
-from db.requests import get_user
+from db.requests import get_user, add_translate_message
 from models.models import Message as MessageModel
 
 from .media_group_midel_were import AlbumMiddleware
@@ -96,6 +96,8 @@ async def message_handler(message: Message, album: list = None) -> None:
             async with aiohttp.ClientSession() as session:
                 async with session.post(url=url, json=payload, headers={"API-KEY": OUT_API_KEY}) as response:
                     response.raise_for_status()
+                    res = await response.json()
+                    await add_translate_message(message.message_id, user.telegram_id, int(res["message_id"]))
 
         logger.info(f"Обработано сообщение от пользователя {message.from_user.id}.")
         # logger.info(message_data.model_dump())
