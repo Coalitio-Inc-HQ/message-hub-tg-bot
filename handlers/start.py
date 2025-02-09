@@ -73,7 +73,7 @@ async def command_start_handler(message: Message) -> None:
             "Новый пользователь добавлен в базу данных: ", user_data.model_dump()
         )
         await message.answer(
-            f"Здравствуйте, {message.from_user.full_name}! Вы зарегистрированы."
+            f"Здравствуйте, {message.from_user.full_name}! Вы успешно зарегистрированы. Теперь вы можете отправлять сюда сообщения, и они будут переданы в организацию."
         )
 
     except Exception as err:
