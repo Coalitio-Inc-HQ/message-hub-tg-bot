@@ -2,6 +2,7 @@ services:
   mh_tg:
     build: .
     container_name: mh_tg
+    restart: always
     env_file:
       - .env
     volumes:
